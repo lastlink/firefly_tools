@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Firefly.Import/bin/Debug/netcoreapp2.2/Firefly.Import.dll",
-            "args": ["-i", "Checking1.csv"],
+            "args": ["-i", "Checking1.csv", "-o", "wells/output.csv", "-b=wells"],
             "cwd": "${workspaceFolder}/Firefly.Import",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
