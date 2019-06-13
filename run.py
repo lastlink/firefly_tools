@@ -136,7 +136,7 @@ def determineBudget(account):
             return settings.get('Budget', category+'_name') if settings.has_option('Budget', category+'_name') else category
     return ''
 
-sys.exit()
+# sys.exit()
 
 # call main function
 if __name__ == "__main__":
