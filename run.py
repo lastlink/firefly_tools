@@ -123,7 +123,7 @@ def cleanAccount(account):
 
     # remove double spaces
     tmpAccount = re.sub("\s\s+", " ", tmpAccount)
-    # could possibly do matching from setting ini as well
+    # could possibly do matching from setting ini as well, but would be better to clean unique ideas and do a map
 
     return tmpAccount
 
@@ -131,16 +131,12 @@ def cleanAccount(account):
 def determineBudget(account):
 
     for category in settings.get('Budget', 'categories').split(','):
-        # print(settings.get('Budget', category+'_search').split(','))
         
         if any(word in account for word in settings.get('Budget', category+'_search').split(',')):
-            return category
-        # print(category)
-        pass
-
+            return settings.get('Budget', category+'_name') if settings.has_option('Budget', category+'_name') else category
     return ''
 
-# sys.exit()
+sys.exit()
 
 # call main function
 if __name__ == "__main__":
