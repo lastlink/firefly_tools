@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Configuration;
 
 namespace Firefly.Import
 {
@@ -9,6 +10,23 @@ namespace Firefly.Import
     {
         static void Main(string[] args)
         {
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+            var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory()) // requires Microsoft.Extensions.Configuration.Json
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true) // requires Microsoft.Extensions.Configuration.Json
+                    .AddJsonFile($"appsettings.{environmentName}.json", true, true)
+                    .AddEnvironmentVariables(); 
+            IConfigurationRoot configuration = builder.Build();
+            Console.WriteLine(configuration.GetConnectionString("con"));
+            Console.WriteLine(configuration.GetSection("Budget").GetSection("categories"));
+
+
+            var token = configuration.GetSection("Budget:categories");
+            Console.WriteLine("This is a token with key (" + token.Key + ") " + token.Value);
+
+            Console.WriteLine(configuration.GetSection("Budget:categories").Value);
+            
             var app = new CommandLineApplication();
             app.Name = "ConsoleArgs";
             app.Description = ".NET Core console app with argument parsing.";
@@ -55,7 +73,7 @@ namespace Firefly.Import
                 // Console.WriteLine("Column 1:");
                 // foreach (var element in column1)
                 //     Console.WriteLine(element);
-                    
+
             });
 
             app.Execute(args);
