@@ -18,3 +18,6 @@
     * `python3 bankParser.py`
     * `python3 run.py --ifile input.csv -o wells/output.csv`
     * `pip3 install sqlacodegen`
+* dotnet
+    * `dotnet run --project Firefly.Import`
+    * `dotnet Firefly.Import\bin\Debug\netcoreapp2.2\Firefly.Import.dll`
