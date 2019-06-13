@@ -97,7 +97,7 @@ def main(argv):
                                 'Amount (Credit)')] = lineArr[baseHeader.index('Amount')].replace('"', '')
                     else:
                         rowResult[outputFormat.index(
-                                'Amount (Debit)')] = lineArr[baseHeader.index('Amount')].replace('"', '')
+                                'Amount (Debit)')] = abs(float(lineArr[baseHeader.index('Amount')].replace('"', '')))
                                 
                     rowResult[outputFormat.index(
                             'Posting Date')] = lineArr[baseHeader.index('Posting Date')].replace('"', '')
