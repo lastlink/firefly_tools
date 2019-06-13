@@ -8,6 +8,7 @@ import re
 
 # sys.exit()
 
+
 def main(argv):
     inputfile = ''
     outputfile = ''
@@ -42,7 +43,7 @@ def main(argv):
         #  place the csv export name here, note when importing into sql database this will be name of table
         with open(outputfile, "w") as file:
             csv_file = csv.writer(file)
-            outputFormat = ['Details', 'Posting Date', 'Description',
+            outputFormat = ['Notes', 'Posting Date', 'Description',
                             'Amount (Debit)', 'Amount (Credit)', 'Budget', 'Balance', 'Account']
             csv_file.writerow(outputFormat)
 
@@ -53,11 +54,20 @@ def main(argv):
                     print(baseHeader)
                 else:
                     lineArr = line.split(",")
-                    print(lineArr[0])
                     rowResult = [''] * len(outputFormat)
                     if bank == 'chase':
-                        print(outputFormat.index('Posting Date'))
+                        if lineArr[baseHeader.index('Details')] == 'DEBIT':
+                            rowResult[outputFormat.index(
+                                'Amount (Debit)')] = lineArr[baseHeader.index('Amount')]
+                        elif lineArr[baseHeader.index('Details')] == 'CREDIT':
+                            rowResult[outputFormat.index(
+                                'Amount (Credit)')] = lineArr[baseHeader.index('Amount')]
+                        else:
+                            print(
+                                "Missing credit/debit:" + lineArr[baseHeader.index('Details')] + " on line:" + lineNum)
 
+                        rowResult[outputFormat.index(
+                            'Notes')] = lineArr[baseHeader.index('Details')]
                         # if(lineArr[baseHeader()])
                         # if()
                         # print
@@ -68,7 +78,12 @@ def main(argv):
                         rowResult[outputFormat.index(
                             'Account')] = re.sub(
                             "((0|1)\d{1})\/((0|1|2)\d{1})", " ", rowResult[outputFormat.index('Description')])
-                        rowResult[outputFormat.index('Posting Date')] = 'test'
+                        rowResult[outputFormat.index(
+                            'Posting Date')] = lineArr[baseHeader.index('Posting Date')]
+                        rowResult[outputFormat.index(
+                            'Balance')] = lineArr[baseHeader.index('Balance')]
+
+                        # budget logic
                         pass
                     elif bank == 'wells':
                         pass
