@@ -76,7 +76,7 @@ namespace Firefly.Import
                         string[] baseHeader = null;
                         while (!rd.EndOfStream)
                         {
-
+                            // TODO:  change delimiter to ;
                             string[] lineArr = rd.ReadLine().Split(",");
                             // Console.WriteLine(string.Join(",",outputFormat));
                             // return;
