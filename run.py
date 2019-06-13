@@ -146,6 +146,7 @@ def determineBudget(account):
 
     for category in settings.get('Budget', 'categories').split(','):
         if settings.has_option('Budget', category+'_search'):
+            # make array uppercase
             categorySearch = [element.upper() for element in settings.get('Budget', category+'_search').split(',')]
             if any(word in account.upper() for word in categorySearch):
                 return settings.get('Budget', category+'_name') if settings.has_option('Budget', category+'_name') else category
