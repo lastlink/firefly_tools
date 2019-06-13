@@ -28,6 +28,13 @@ namespace Firefly.Import
             var token = configuration.GetSection("Budget:categories");
             Console.WriteLine("This is a token with key (" + token.Key + ") " + token.Value);
 
+            // string withspace="AMZ*Buyquest, Inc. amzn.com/pmts NY          06/11";
+            // Console.WriteLine(withspace);
+            // withspace=Regex.Replace(withspace, " {2,}", " ");
+            // Console.WriteLine(withspace);
+
+            // return;
+
             Console.WriteLine(configuration.GetSection("Budget:categories").Value);
 
             var app = new CommandLineApplication();
@@ -48,6 +55,8 @@ namespace Firefly.Import
             String[] outputFormat = new string[] {"Notes", "Posting Date", "Description",
                             "Amount (Debit)", "Amount (Credit)", "Budget", "Balance", "Account"};
 
+            
+
             // app.HelpOption("-?|-h|--help");
             app.OnExecute(() =>
             {
@@ -62,12 +71,17 @@ namespace Firefly.Import
                 {
                     using (var csv_file = new StreamWriter(outputfile.Value()))
                     {
+                        csv_file.WriteLine(string.Join(",", outputFormat));
                         int lineNum = 0;
                         string[] baseHeader = null;
                         while (!rd.EndOfStream)
                         {
 
                             string[] lineArr = rd.ReadLine().Split(",");
+                            // Console.WriteLine(string.Join(",",outputFormat));
+                            // return;
+                                        // withspace=Regex.Replace(withspace, " {2,}", " ");
+
                             string[] rowResult = new string[outputFormat.Length];
 
                             switch (bank.Value())
@@ -97,7 +111,18 @@ namespace Firefly.Import
                                     }
 
                                     rowResult[Array.FindIndex(outputFormat, h => h == "Notes")] = lineArr[Array.FindIndex(baseHeader, h => h == "Details")];
-                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = Regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")], "\\s\\s+", " ");
+                                    // RegexOptions options = RegexOptions.None;
+                                    // Regex regex = new Regex("[ ]{2,}", options);  
+
+                                    string desc = lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString().Replace("\"", "");
+                                    desc =Regex.Replace(desc, " {2,}", " ");
+                                    Console.WriteLine("desc:"+desc);
+                                    //  Regex.Replace(desc, " {2,}", " ");
+                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] =desc;
+                                    // Regex.Replace(myString, " {2,}", " ");
+                                    //  regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString().Replace("\"", "")," ").Replace(System.Environment.NewLine, "");
+                                    
+                                    // regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")], "\\s\\s+", " ").Replace(System.Environment.NewLine, "replacement text");
                                     // # need to clean out junk
                                     rowResult[Array.FindIndex(outputFormat, h => h ==
                                         "Account")] = cleanAccount(rowResult[Array.FindIndex(outputFormat, h => h == "Description")]);
