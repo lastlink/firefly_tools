@@ -41,7 +41,7 @@ def main(argv):
     lineNum = 0
     with open(inputfile) as f:
         #  place the csv export name here, note when importing into sql database this will be name of table
-        with open(outputfile, "w") as file:
+        with open(outputfile, "w", newline='') as file:
             csv_file = csv.writer(file)
             outputFormat = ['Notes', 'Posting Date', 'Description',
                             'Amount (Debit)', 'Amount (Credit)', 'Budget', 'Balance', 'Account']
@@ -49,13 +49,13 @@ def main(argv):
 
             for line in f:
                 # print(line)
-                if lineNum == 0:
-                    baseHeader = line.split(",")
-                    print(baseHeader)
-                else:
-                    lineArr = line.split(",")
-                    rowResult = [''] * len(outputFormat)
-                    if bank == 'chase':
+                lineArr = line.split(",")
+                rowResult = [''] * len(outputFormat)
+                if bank == 'chase':
+                    if lineNum == 0:
+                        baseHeader = lineArr
+                        print(baseHeader)
+                    else:
                         if lineArr[baseHeader.index('Details')] == 'DEBIT':
                             rowResult[outputFormat.index(
                                 'Amount (Debit)')] = lineArr[baseHeader.index('Amount')]
@@ -85,16 +85,35 @@ def main(argv):
 
                         # budget logic
                         pass
-                    elif bank == 'wells':
-                        pass
+                elif bank == 'wells':
+                    if lineNum == 0:
+                        baseHeader = ['Posting Date','Amount','Star','Blank','Description']
+                        print(baseHeader)
+
+                    rowResult[outputFormat.index('Description')] = re.sub(
+                            "\s\s+", " ", lineArr[baseHeader.index('Description')].replace('"', '').rstrip())
+                    if float(lineArr[baseHeader.index('Amount')].replace('"', '')) > 0:
+                        rowResult[outputFormat.index(
+                                'Amount (Credit)')] = lineArr[baseHeader.index('Amount')].replace('"', '')
                     else:
-                        print('bank not implemented')
-                        sys.exit()
+                        rowResult[outputFormat.index(
+                                'Amount (Debit)')] = lineArr[baseHeader.index('Amount')].replace('"', '')
+                                
+                    rowResult[outputFormat.index(
+                            'Posting Date')] = lineArr[baseHeader.index('Posting Date')].replace('"', '')
+                    
+                    rowResult[outputFormat.index(
+                            'Account')] = re.sub(
+                            "((0|1)\d{1})\/((0|1|2)\d{1})", " ", rowResult[outputFormat.index('Description')])
+                    pass
+                else:
+                    print('bank not implemented')
+                    sys.exit()
 
-                    csv_file.writerow(rowResult)
+                csv_file.writerow(rowResult)
 
-                    # csv_file.writerow(lineArr)
-                    # csv_file.writerow(rowResult)
+                # csv_file.writerow(lineArr)
+                # csv_file.writerow(rowResult)
 
                 # print(baseHeader)
                 # print(line[0])
