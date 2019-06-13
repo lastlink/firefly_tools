@@ -15,6 +15,8 @@ settings.read('settings.ini')
 def main(argv):
     inputfile = ''
     outputfile = ''
+    bank = ''
+    validBanks = ['wells', 'chase']
     try:
         opts, args = getopt.getopt(
             argv, "hi:o:b:", ["ifile=", "ofile=", "bank="])
@@ -31,14 +33,21 @@ def main(argv):
             outputfile = arg
         elif opt in ("-b", "--bank"):
             bank = arg
-            validBanks = ['wells', 'chase']
             try:
                 validBanks.index(bank)
             except ValueError:
                 print(bank + " not in " + str(validBanks))
                 sys.exit()
+    if bank is None or bank == '':
+        bank = settings.get('CurrentBank', 'bank')
+        try:
+            validBanks.index(bank)
+        except ValueError:
+            print(bank + " not in " + str(validBanks))
+            sys.exit()
     print('Input file is "', inputfile)
     print('Output file is "', outputfile)
+    print('Bank type is "'+bank)
     start = time.time()
     print("read by line timer:")
     lineNum = 0
@@ -123,6 +132,11 @@ def cleanAccount(account):
 
     # remove double spaces
     tmpAccount = re.sub("\s\s+", " ", tmpAccount)
+
+    for accountType in settings.get('Account', 'accounts').split(','):
+        accountSearch = [element.upper() for element in settings.get('Account', accountType+'_search').split(',')]
+        if any(word in tmpAccount.upper() for word in accountSearch):
+            return accountType
     # could possibly do matching from setting ini as well, but would be better to clean unique ideas and do a map
 
     return tmpAccount
@@ -131,9 +145,10 @@ def cleanAccount(account):
 def determineBudget(account):
 
     for category in settings.get('Budget', 'categories').split(','):
-        
-        if any(word in account for word in settings.get('Budget', category+'_search').split(',')):
-            return settings.get('Budget', category+'_name') if settings.has_option('Budget', category+'_name') else category
+        if settings.has_option('Budget', category+'_search'):
+            categorySearch = [element.upper() for element in settings.get('Budget', category+'_search').split(',')]
+            if any(word in account.upper() for word in categorySearch):
+                return settings.get('Budget', category+'_name') if settings.has_option('Budget', category+'_name') else category
     return ''
 
 # sys.exit()
