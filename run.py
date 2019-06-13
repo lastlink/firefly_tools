@@ -1,12 +1,19 @@
-import sys, getopt, csv, time
+import sys
+import getopt
+import csv
+import time
+import re
 
 # author: lastlink
+
+# sys.exit()
 
 def main(argv):
     inputfile = ''
     outputfile = ''
     try:
-        opts, args = getopt.getopt(argv,"hi:o:b:",["ifile=","ofile=","bank="])
+        opts, args = getopt.getopt(
+            argv, "hi:o:b:", ["ifile=", "ofile=", "bank="])
     except getopt.GetoptError:
         print('test.py -i <inputfile> -o <outputfile> -b <bankname>')
         sys.exit(2)
@@ -20,7 +27,7 @@ def main(argv):
             outputfile = arg
         elif opt in ("-b", "--bank"):
             bank = arg
-            validBanks = ['wells','chase']
+            validBanks = ['wells', 'chase']
             try:
                 validBanks.index(bank)
             except ValueError:
@@ -30,43 +37,58 @@ def main(argv):
     print('Output file is "', outputfile)
     start = time.time()
     print("read by line timer:")
-    lineNum=0
+    lineNum = 0
     with open(inputfile) as f:
         #  place the csv export name here, note when importing into sql database this will be name of table
         with open(outputfile, "w") as file:
             csv_file = csv.writer(file)
-            csv_file.writerow(['Details','Posting Date','Description','Amount (Debit)','Amount (Credit)','Budget','Balance','Account']) 
-        
-            # baseHeader
-        # + item['fields'].values())
+            outputFormat = ['Details', 'Posting Date', 'Description',
+                            'Amount (Debit)', 'Amount (Credit)', 'Budget', 'Balance', 'Account']
+            csv_file.writerow(outputFormat)
+
             for line in f:
                 # print(line)
                 if lineNum == 0:
                     baseHeader = line.split(",")
                     print(baseHeader)
-                else: 
+                else:
                     lineArr = line.split(",")
                     print(lineArr[0])
+                    rowResult = [''] * len(outputFormat)
                     if bank == 'chase':
-                        
+                        print(outputFormat.index('Posting Date'))
+
+                        # if(lineArr[baseHeader()])
+                        # if()
+                        # print
+                        # if 4 in test_list_set:
+                        rowResult[outputFormat.index('Description')] = re.sub(
+                            "\s\s+", " ", lineArr[baseHeader.index('Description')])
+                        # need to clean out junk
+                        rowResult[outputFormat.index(
+                            'Account')] = re.sub(
+                            "((0|1)\d{1})\/((0|1|2)\d{1})", " ", rowResult[outputFormat.index('Description')])
+                        rowResult[outputFormat.index('Posting Date')] = 'test'
                         pass
                     elif bank == 'wells':
                         pass
                     else:
                         print('bank not implemented')
                         sys.exit()
-                    # switch
-                    # rowResult =
-                    csv_file.writerow(lineArr) 
-                    # csv_file.writerow(rowResult) 
+
+                    csv_file.writerow(rowResult)
+
+                    # csv_file.writerow(lineArr)
+                    # csv_file.writerow(rowResult)
 
                 # print(baseHeader)
                 # print(line[0])
-                lineNum+=1
-    
+                lineNum += 1
+
     end = time.time()
     print(end - start, "line num", lineNum)
 
+
 # call main function
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    main(sys.argv[1:])
