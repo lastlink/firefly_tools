@@ -3,10 +3,13 @@ import getopt
 import csv
 import time
 import re
+import configparser
 
 # author: lastlink
 
-# sys.exit()
+settings = configparser.ConfigParser()
+settings._interpolation = configparser.ExtendedInterpolation()
+settings.read('settings.ini')
 
 
 def main(argv):
@@ -68,16 +71,11 @@ def main(argv):
 
                         rowResult[outputFormat.index(
                             'Notes')] = lineArr[baseHeader.index('Details')]
-                        # if(lineArr[baseHeader()])
-                        # if()
-                        # print
-                        # if 4 in test_list_set:
                         rowResult[outputFormat.index('Description')] = re.sub(
                             "\s\s+", " ", lineArr[baseHeader.index('Description')])
                         # need to clean out junk
                         rowResult[outputFormat.index(
-                            'Account')] = re.sub(
-                            "((0|1)\d{1})\/((0|1|2)\d{1})", " ", rowResult[outputFormat.index('Description')])
+                            'Account')] = cleanAccount(rowResult[outputFormat.index('Description')])
                         rowResult[outputFormat.index(
                             'Posting Date')] = lineArr[baseHeader.index('Posting Date')]
                         rowResult[outputFormat.index(
@@ -103,25 +101,46 @@ def main(argv):
                             'Posting Date')] = lineArr[baseHeader.index('Posting Date')].replace('"', '')
                     
                     rowResult[outputFormat.index(
-                            'Account')] = re.sub(
-                            "((0|1)\d{1})\/((0|1|2)\d{1})", " ", rowResult[outputFormat.index('Description')])
+                            'Account')] = cleanAccount(rowResult[outputFormat.index('Description')])
                     pass
                 else:
                     print('bank not implemented')
                     sys.exit()
 
+                rowResult[outputFormat.index(
+                            'Budget')] = determineBudget(rowResult[outputFormat.index('Account')])
+
                 csv_file.writerow(rowResult)
-
-                # csv_file.writerow(lineArr)
-                # csv_file.writerow(rowResult)
-
-                # print(baseHeader)
-                # print(line[0])
                 lineNum += 1
 
     end = time.time()
     print(end - start, "line num", lineNum)
 
+def cleanAccount(account):
+    tmpAccount = account
+    # remove m/d
+    tmpAccount = re.sub("((0|1)\d{1})\/((0|1|2)\d{1})", " ", tmpAccount)
+
+    # remove double spaces
+    tmpAccount = re.sub("\s\s+", " ", tmpAccount)
+    # could possibly do matching from setting ini as well
+
+    return tmpAccount
+
+
+def determineBudget(account):
+
+    for category in settings.get('Budget', 'categories').split(','):
+        # print(settings.get('Budget', category+'_search').split(','))
+        
+        if any(word in account for word in settings.get('Budget', category+'_search').split(',')):
+            return category
+        # print(category)
+        pass
+
+    return ''
+
+# sys.exit()
 
 # call main function
 if __name__ == "__main__":
