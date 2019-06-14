@@ -74,12 +74,11 @@ namespace Firefly.Import
                 {
                     lineArr.MissingFieldAction = MissingFieldAction.ReplaceByNull;
                     int fieldCount = lineArr.FieldCount;
-                    string[] baseHeader = lineArr.GetFieldHeaders();
+                    string[] baseHeader = new string[lineArr.FieldCount];
                     using (var csv_file = new StreamWriter(outputfile.Value()))
                     {
                         csv_file.WriteLine(string.Join(",", outputFormat));
                         int lineNum = 0;
-                        // string[] baseHeader = null;
                         while (lineArr.ReadNextRecord())
                         {
                             // TODO:  change delimiter to ;
@@ -96,8 +95,14 @@ namespace Firefly.Import
                                     // has header
                                     if (lineNum == 0)
                                     {
+                                        // baseHeader = lineArr.GetFieldHeaders();
+                                        for (int i = 0; i < baseHeader.Length; i++)
+                                        {
+                                            baseHeader[i] = lineArr[i];
+                                        }
                                         // baseHeader = lineArr;
                                         Console.WriteLine(string.Join(",", baseHeader));
+                                        rowResult = null;
                                     }
                                     else
                                     {
@@ -114,29 +119,29 @@ namespace Firefly.Import
                                             Console.WriteLine(
                                                 "Missing credit/debit:" + lineArr[Array.FindIndex(baseHeader, h => h == "Details")] + " on line:" + lineNum);
 
+
+
+                                        rowResult[Array.FindIndex(outputFormat, h => h == "Notes")] = lineArr[Array.FindIndex(baseHeader, h => h == "Details")];
+                                        // RegexOptions options = RegexOptions.None;
+                                        // Regex regex = new Regex("[ ]{2,}", options);  
+
+                                        string desc = lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString();
+                                        desc = Regex.Replace(desc, " {2,}", " ");
+                                        Console.WriteLine("desc:" + desc);
+                                        //  Regex.Replace(desc, " {2,}", " ");
+                                        rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = desc;
+                                        // Regex.Replace(myString, " {2,}", " ");
+                                        //  regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString()," ").Replace(System.Environment.NewLine, "");
+
+                                        // regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")], "\\s\\s+", " ").Replace(System.Environment.NewLine, "replacement text");
+                                        // # need to clean out junk
+                                        rowResult[Array.FindIndex(outputFormat, h => h ==
+                                            "Account")] = cleanAccount(rowResult[Array.FindIndex(outputFormat, h => h == "Description")]);
+                                        rowResult[Array.FindIndex(outputFormat, h => h ==
+                                            "Posting Date")] = lineArr[Array.FindIndex(baseHeader, h => h == "Posting Date")];
+                                        rowResult[Array.FindIndex(outputFormat, h => h ==
+                                            "Balance")] = lineArr[Array.FindIndex(baseHeader, h => h == "Balance")];
                                     }
-
-                                    rowResult[Array.FindIndex(outputFormat, h => h == "Notes")] = lineArr[Array.FindIndex(baseHeader, h => h == "Details")];
-                                    // RegexOptions options = RegexOptions.None;
-                                    // Regex regex = new Regex("[ ]{2,}", options);  
-
-                                    string desc = lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString();
-                                    desc = Regex.Replace(desc, " {2,}", " ");
-                                    Console.WriteLine("desc:" + desc);
-                                    //  Regex.Replace(desc, " {2,}", " ");
-                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = desc;
-                                    // Regex.Replace(myString, " {2,}", " ");
-                                    //  regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString()," ").Replace(System.Environment.NewLine, "");
-
-                                    // regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")], "\\s\\s+", " ").Replace(System.Environment.NewLine, "replacement text");
-                                    // # need to clean out junk
-                                    rowResult[Array.FindIndex(outputFormat, h => h ==
-                                        "Account")] = cleanAccount(rowResult[Array.FindIndex(outputFormat, h => h == "Description")]);
-                                    rowResult[Array.FindIndex(outputFormat, h => h ==
-                                        "Posting Date")] = lineArr[Array.FindIndex(baseHeader, h => h == "Posting Date")];
-                                    rowResult[Array.FindIndex(outputFormat, h => h ==
-                                        "Balance")] = lineArr[Array.FindIndex(baseHeader, h => h == "Balance")];
-
                                     break;
                                 case "wells":
                                     if (lineNum == 0)
@@ -176,15 +181,19 @@ namespace Firefly.Import
                                     Console.WriteLine("bank not implemented");
                                     return;
                             }
-                            rowResult[Array.FindIndex(outputFormat, h => h ==
-                          "Budget")] = determineBudget(rowResult[Array.FindIndex(outputFormat, h => h == "Account")]);
+                            if (rowResult != null)
+                            {
+                                rowResult[Array.FindIndex(outputFormat, h => h ==
+                              "Budget")] = determineBudget(rowResult[Array.FindIndex(outputFormat, h => h == "Account")]);
 
 
-                            if (rowResult[Array.FindIndex(outputFormat, h => h == "Description")].Contains(","))
-                                rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = "\"" + rowResult[Array.FindIndex(outputFormat, h => h == "Description")] + "\"";
-                            // Console.WriteLine(string.Join(",", rowResult));
-                            // column1.Add(splits[0]);
-                            csv_file.WriteLine(string.Join(",", rowResult));
+                                if (rowResult[Array.FindIndex(outputFormat, h => h == "Description")].Contains(","))
+                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = "\"" + rowResult[Array.FindIndex(outputFormat, h => h == "Description")] + "\"";
+                                // Console.WriteLine(string.Join(",", rowResult));
+                                // column1.Add(splits[0]);
+
+                                csv_file.WriteLine(string.Join(",", rowResult));
+                            }
                             // csv_file.WriteLine(string.Join(",", splits));
                             // column2.Add(splits[1]);
                             lineNum++;
