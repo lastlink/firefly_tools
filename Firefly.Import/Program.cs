@@ -66,7 +66,7 @@ namespace Firefly.Import
                 Console.WriteLine($"Input file is \" {inputfile.Value()}!");
                 Console.WriteLine($"Output file is \" {outputfile.Value()}!");
                 Console.WriteLine($"Bank file is \" {bank.Value()}!");
-                
+
                 // var column1 = new List<string>();
                 // var column2 = new List<string>();
                 using (var rd = new StreamReader(inputfile.Value()))
@@ -176,6 +176,8 @@ namespace Firefly.Import
                                     Console.WriteLine("bank not implemented");
                                     return;
                             }
+                            rowResult[Array.FindIndex(outputFormat, h => h ==
+                          "Budget")] = determineBudget(rowResult[Array.FindIndex(outputFormat, h => h == "Account")]);
 
 
                             if (rowResult[Array.FindIndex(outputFormat, h => h == "Description")].Contains(","))
@@ -230,8 +232,8 @@ namespace Firefly.Import
         {
             foreach (var category in configuration.GetSection("Budget:categories").Value.Split(","))
             {
-                Console.WriteLine(category);
-                Console.WriteLine(string.IsNullOrEmpty(configuration.GetSection("Budget:categories").Value));
+                // Console.WriteLine(category);
+                // Console.WriteLine(string.IsNullOrEmpty(configuration.GetSection("Budget:categories").Value));
                 if (!string.IsNullOrEmpty(configuration.GetSection("Budget:" + category + "_search").Value))
                 {
                     string[] categorySearch = Array.ConvertAll(configuration.GetSection("Budget:" + category + "_search").Value.ToString().Split(","), d => d.ToUpper());
