@@ -1,3 +1,4 @@
 *.csv
 .DS_Store
 settings.ini
+appsettings.json
