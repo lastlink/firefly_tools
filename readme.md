@@ -23,3 +23,5 @@
         * `dotnet add Firefly.Import package McMaster.Extensions.CommandLineUtils`
     * `dotnet run --project Firefly.Import -i Checking1.csv -o wells/output.csv -b wells`
     * `dotnet Firefly.Import\bin\Debug\netcoreapp2.2\Firefly.Import.dll`
+    * env:
+        * **appsettings.json** on windows needs to be in **Firefly.Import** folder, on mac can be here in root.

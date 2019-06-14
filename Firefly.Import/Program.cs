@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using LumenWorks.Framework.IO.Csv;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 
@@ -27,7 +28,8 @@ namespace Firefly.Import
 
             var token = configuration.GetSection("Budget:categories");
             Console.WriteLine("This is a token with key (" + token.Key + ") " + token.Value);
-
+            Console.WriteLine(configuration.GetSection("Budget:categories").Value);
+            Console.WriteLine(configuration.GetSection("Account:accounts").Value);
             // string withspace="AMZ*Buyquest, Inc. amzn.com/pmts NY          06/11";
             // Console.WriteLine(withspace);
             // withspace=Regex.Replace(withspace, " {2,}", " ");
@@ -55,7 +57,7 @@ namespace Firefly.Import
             String[] outputFormat = new string[] {"Notes", "Posting Date", "Description",
                             "Amount (Debit)", "Amount (Credit)", "Budget", "Balance", "Account"};
 
-            
+
 
             // app.HelpOption("-?|-h|--help");
             app.OnExecute(() =>
@@ -64,23 +66,27 @@ namespace Firefly.Import
                 Console.WriteLine($"Input file is \" {inputfile.Value()}!");
                 Console.WriteLine($"Output file is \" {outputfile.Value()}!");
                 Console.WriteLine($"Bank file is \" {bank.Value()}!");
-
+                
                 // var column1 = new List<string>();
                 // var column2 = new List<string>();
                 using (var rd = new StreamReader(inputfile.Value()))
+                using (CsvReader lineArr = new CsvReader(rd.BaseStream, false, rd.CurrentEncoding, true))
                 {
+                    lineArr.MissingFieldAction = MissingFieldAction.ReplaceByNull;
+                    int fieldCount = lineArr.FieldCount;
+                    string[] baseHeader = lineArr.GetFieldHeaders();
                     using (var csv_file = new StreamWriter(outputfile.Value()))
                     {
                         csv_file.WriteLine(string.Join(",", outputFormat));
                         int lineNum = 0;
-                        string[] baseHeader = null;
-                        while (!rd.EndOfStream)
+                        // string[] baseHeader = null;
+                        while (lineArr.ReadNextRecord())
                         {
                             // TODO:  change delimiter to ;
-                            string[] lineArr = rd.ReadLine().Split(",");
+                            // string[] lineArr =  rd.ReadLine().Split(",");
                             // Console.WriteLine(string.Join(",",outputFormat));
                             // return;
-                                        // withspace=Regex.Replace(withspace, " {2,}", " ");
+                            // withspace=Regex.Replace(withspace, " {2,}", " ");
 
                             string[] rowResult = new string[outputFormat.Length];
 
@@ -90,7 +96,7 @@ namespace Firefly.Import
                                     // has header
                                     if (lineNum == 0)
                                     {
-                                        baseHeader = lineArr;
+                                        // baseHeader = lineArr;
                                         Console.WriteLine(string.Join(",", baseHeader));
                                     }
                                     else
@@ -114,14 +120,14 @@ namespace Firefly.Import
                                     // RegexOptions options = RegexOptions.None;
                                     // Regex regex = new Regex("[ ]{2,}", options);  
 
-                                    string desc = lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString().Replace("\"", "");
-                                    desc =Regex.Replace(desc, " {2,}", " ");
-                                    Console.WriteLine("desc:"+desc);
+                                    string desc = lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString();
+                                    desc = Regex.Replace(desc, " {2,}", " ");
+                                    Console.WriteLine("desc:" + desc);
                                     //  Regex.Replace(desc, " {2,}", " ");
-                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] =desc;
+                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = desc;
                                     // Regex.Replace(myString, " {2,}", " ");
-                                    //  regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString().Replace("\"", "")," ").Replace(System.Environment.NewLine, "");
-                                    
+                                    //  regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")].ToString()," ").Replace(System.Environment.NewLine, "");
+
                                     // regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")], "\\s\\s+", " ").Replace(System.Environment.NewLine, "replacement text");
                                     // # need to clean out junk
                                     rowResult[Array.FindIndex(outputFormat, h => h ==
@@ -138,27 +144,43 @@ namespace Firefly.Import
                                         baseHeader = new string[] { "Posting Date", "Amount", "Star", "Blank", "Description" };
                                         Console.WriteLine(string.Join(",", baseHeader));
                                     }
-                                    //                 rowResult[Array.FindIndex(outputFormat, h => h =="Description")] = re.sub(
-                                    //         "\s\s+", " ", lineArr[Array.FindIndex(baseHeader, h => h =="Description")].replace(""", "").rstrip())
-                                    // if float(lineArr[Array.FindIndex(baseHeader, h => h =="Amount")].replace(""", "")) > 0:
-                                    //     rowResult[Array.FindIndex(outputFormat, h => h ==
-                                    //             "Amount (Credit)")] = lineArr[Array.FindIndex(baseHeader, h => h =="Amount")].replace(""", "")
-                                    // else:
-                                    //     rowResult[Array.FindIndex(outputFormat, h => h ==
-                                    //             "Amount (Debit)")] = abs(float(lineArr[Array.FindIndex(baseHeader, h => h =="Amount")].replace(""", "")))
 
-                                    // rowResult[Array.FindIndex(outputFormat, h => h ==
-                                    //         "Posting Date")] = lineArr[Array.FindIndex(baseHeader, h => h =="Posting Date")].replace(""", "")
+                                    rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = Regex.Replace(lineArr[Array.FindIndex(baseHeader, h => h == "Description")],
+                            "\\s\\s+", " ");
 
-                                    // rowResult[Array.FindIndex(outputFormat, h => h ==
-                                    //         "Account")] = cleanAccount(rowResult[Array.FindIndex(outputFormat, h => h =="Description")])
+                                    if (decimal.Parse(lineArr[Array.FindIndex(baseHeader, h => h == "Amount")]) > 0)
+                                        rowResult[Array.FindIndex(outputFormat, h => h ==
+                                                "Amount (Credit)")] = lineArr[Array.FindIndex(baseHeader, h => h == "Amount")];
+                                    else
+                                    {
+                                        // decimal amount;
+                                        // bool result = decimal.TryParse(lineArr[Array.FindIndex(baseHeader, h => h == "Amount")], out amount);
+                                        // if (result)
+                                        // {
+                                        //     rowResult[Array.FindIndex(outputFormat, h => h ==
+                                        //        "Amount (Debit)")] = Math.Abs(amount).ToString();
+                                        // }
+                                        // should always have an amount or invalid
+                                        rowResult[Array.FindIndex(outputFormat, h => h ==
+                                                "Amount (Debit)")] = Math.Abs(decimal.Parse(lineArr[Array.FindIndex(baseHeader, h => h == "Amount")])).ToString();
+
+                                    }
+                                    rowResult[Array.FindIndex(outputFormat, h => h ==
+                                            "Posting Date")] = lineArr[Array.FindIndex(baseHeader, h => h == "Posting Date")];
+
+                                    rowResult[Array.FindIndex(outputFormat, h => h ==
+                                            "Account")] = cleanAccount(rowResult[Array.FindIndex(outputFormat, h => h == "Description")]);
                                     break;
 
                                 default:
                                     Console.WriteLine("bank not implemented");
                                     return;
                             }
-                            // Console.WriteLine(string.Join(",", splits));
+
+
+                            if (rowResult[Array.FindIndex(outputFormat, h => h == "Description")].Contains(","))
+                                rowResult[Array.FindIndex(outputFormat, h => h == "Description")] = "\"" + rowResult[Array.FindIndex(outputFormat, h => h == "Description")] + "\"";
+                            // Console.WriteLine(string.Join(",", rowResult));
                             // column1.Add(splits[0]);
                             csv_file.WriteLine(string.Join(",", rowResult));
                             // csv_file.WriteLine(string.Join(",", splits));
@@ -198,7 +220,8 @@ namespace Firefly.Import
                 }
             }
             // # could possibly do matching from setting ini as well, but would be better to clean unique ideas and do a map
-
+            if (tmpAccount.Contains(","))
+                return "\"" + tmpAccount + "\"";
             return tmpAccount;
         }
 
