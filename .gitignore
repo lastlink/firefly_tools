@@ -1,5 +1,13 @@
+# src files
 *.csv
 *.zip
+*.xlsx
+
+# system files
 .DS_Store
+
+# env files
 settings.ini
 appsettings.json
+
+
