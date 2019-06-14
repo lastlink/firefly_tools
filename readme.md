@@ -9,6 +9,8 @@
 * php simple server to test date output
     * `php -S localhost:8000`
 * python
+    * note doesn't handle csv format completely e.g. test,"asdf,asdf,asdf",test
+        * will need to update reader or use a csv reader library
     * vm
     ```
     python3 -m venv venv
@@ -18,3 +20,11 @@
     * `python3 bankParser.py`
     * `python3 run.py --ifile input.csv -o wells/output.csv`
     * `pip3 install sqlacodegen`
+* dotnet
+    * uses a csv reader library so handles csv delimiter format with quotes
+    * install dep
+        * `dotnet add Firefly.Import package McMaster.Extensions.CommandLineUtils`
+    * `dotnet run --project Firefly.Import -i Checking1.csv -o wells/output.csv -b wells`
+    * `dotnet Firefly.Import\bin\Debug\netcoreapp2.2\Firefly.Import.dll`
+    * env:
+        * **appsettings.json** on windows needs to be in **Firefly.Import** folder, on mac can be here in root.
