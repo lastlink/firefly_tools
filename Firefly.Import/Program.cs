@@ -242,6 +242,8 @@ namespace Firefly.Import
                     {
                         if (account.Contains(word.ToUpper()))
                         {
+                            // any custom name mappings from settings must have escapes for \"
+                            // e.g. "Tranportation_name": "\"TRANSPORTATION:Auto Gas, public trans, parking\"",
                             return string.IsNullOrEmpty(configuration.GetSection("Budget:" + category + "_name").Value) ? category : configuration.GetSection("Budget:" + category + "_name").Value;
                         }
                     }
