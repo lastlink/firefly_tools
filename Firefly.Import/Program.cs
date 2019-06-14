@@ -222,10 +222,21 @@ namespace Firefly.Import
 
             foreach (var accountType in configuration.GetSection("Account:accounts").Value.Split(","))
             {
-                string[] accountSearch = Array.ConvertAll(configuration.GetSection("Account:" + accountType + "_search").Value.ToString().Split(","), d => d.ToUpper());
-                foreach (string word in accountSearch)
+                if (!string.IsNullOrEmpty(configuration.GetSection("Account:" + accountType + "_search").Value))
                 {
-                    if (account.Contains(word.ToUpper()))
+                    string[] accountSearch = Array.ConvertAll(configuration.GetSection("Account:" + accountType + "_search").Value.ToString().Split(","), d => d.ToUpper());
+                    foreach (string word in accountSearch)
+                    {
+                        Match match = Regex.Match(account, word);
+                        if (account.ToUpper().Contains(word.ToUpper()) || match.Success)
+                        {
+                            return string.IsNullOrEmpty(configuration.GetSection("Account:" + accountType + "_name").Value) ? accountType : configuration.GetSection("Account:" + accountType + "_name").Value;
+                        }
+                    }
+                }
+                else
+                {
+                    if (account.ToUpper().Contains(accountType.ToUpper()))
                     {
                         return string.IsNullOrEmpty(configuration.GetSection("Account:" + accountType + "_name").Value) ? accountType : configuration.GetSection("Account:" + accountType + "_name").Value;
                     }
@@ -249,7 +260,8 @@ namespace Firefly.Import
 
                     foreach (string word in categorySearch)
                     {
-                        if (account.Contains(word.ToUpper()))
+                        Match match = Regex.Match(account, word);
+                        if (account.ToUpper().Contains(word.ToUpper()) || match.Success)
                         {
                             // any custom name mappings from settings must have escapes for \"
                             // e.g. "Tranportation_name": "\"TRANSPORTATION:Auto Gas, public trans, parking\"",
@@ -257,6 +269,13 @@ namespace Firefly.Import
                         }
                     }
 
+                }
+                else
+                {
+                    if (account.ToUpper().Contains(category.ToUpper()))
+                    {
+                        return string.IsNullOrEmpty(configuration.GetSection("Budget:" + category + "_name").Value) ? category : configuration.GetSection("Budget:" + category + "_name").Value;
+                    }
                 }
 
             }
