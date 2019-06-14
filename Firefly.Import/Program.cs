@@ -201,7 +201,8 @@ namespace Firefly.Import
         static string cleanAccount(string account)
         {
             var tmpAccount = account;
-
+            // try to remove m/d/y first
+            tmpAccount = Regex.Replace(tmpAccount, "((0|1)\\d{1})\\/((0|1|2)\\d{1})\\/(\\d{2})", " ");
             // # remove m/d
             tmpAccount = Regex.Replace(tmpAccount, "((0|1)\\d{1})\\/((0|1|2)\\d{1})", " ");
 
